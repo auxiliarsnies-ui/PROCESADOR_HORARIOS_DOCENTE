@@ -417,27 +417,6 @@ if archivo_horarios and archivo_biometrico:
 else:
     st.info("⬆️ Sube ambos archivos para habilitar el procesamiento.")
 
-# ── Resultados ─────────────────────────────────────────────────────────────────
-if "resumen_final" in st.session_state:
-    resumen_final    = st.session_state["resumen_final"]
-    df_detalle_final = st.session_state["df_detalle_final"]
-    df_consolidado   = st.session_state["df_consolidado"]
-
-    tab1, tab2, tab3 = st.tabs(["📊 Resumen Semanal", "📋 Detalle Cruce Diario", "🗂 Archivo Crudo"])
-
-    with tab1:
-        st.markdown(f"**{len(resumen_final)} filas** · {resumen_final['DOCUMENTO'].nunique()} docentes")
-        st.dataframe(resumen_final, use_container_width=True, height=400)
-
-    with tab2:
-        st.markdown(f"**{len(df_detalle_final)} filas**")
-        st.dataframe(df_detalle_final, use_container_width=True, height=400)
-
-    with tab3:
-        st.markdown(f"**{len(df_consolidado)} filas**")
-        st.dataframe(df_consolidado, use_container_width=True, height=400)
-
-    st.divider()
 
     excel_buffer = generar_excel(resumen_final, df_detalle_final, df_consolidado)
     st.download_button(
