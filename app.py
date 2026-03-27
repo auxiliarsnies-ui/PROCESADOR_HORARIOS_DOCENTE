@@ -361,49 +361,7 @@ def procesar(archivo_horarios, archivo_biometrico):
     progress.progress(100, text="¡Procesamiento completo!")
 
     return resumen_final, df_detalle_final, df_consolidado
-# ── UI principal ───────────────────────────────────────────────────────────────
-col1, col2 = st.columns(2)
- 
-with col1:
-    st.subheader("📄 Archivo de Horarios")
-    archivo_horarios = st.file_uploader(
-        "Sube el archivo de horarios docentes (.xlsx)",
-        type=["xlsx"],
-        key="horarios"
-    )
-    if archivo_horarios:
-        st.success(f"✅ Cargado: {archivo_horarios.name}")
- 
-with col2:
-    st.subheader("🖐 Archivo Biométrico")
-    archivo_biometrico = st.file_uploader(
-        "Sube el archivo biométrico (.xlsx)",
-        type=["xlsx"],
-        key="biometrico"
-    )
-    if archivo_biometrico:
-        st.success(f"✅ Cargado: {archivo_biometrico.name}")
- 
-st.divider()
- 
-if archivo_horarios and archivo_biometrico:
-    if st.button("🚀 Procesar archivos", type="primary", use_container_width=True):
-        try:
-            with st.spinner("Procesando..."):
-                resumen_final, df_detalle_final, df_consolidado = procesar(
-                    archivo_horarios, archivo_biometrico
-                )
- 
-            st.session_state["resumen_final"]    = resumen_final
-            st.session_state["df_detalle_final"] = df_detalle_final
-            st.session_state["df_consolidado"]   = df_consolidado
-            st.success("✅ Procesamiento exitoso. Revisa las pestañas y descarga el reporte.")
- 
-        except Exception as e:
-            st.error(f"❌ Error durante el procesamiento: {e}")
-            st.exception(e)
-else:
-    st.info("⬆️ Sube ambos archivos para habilitar el procesamiento.")
+
 
 def generar_excel(resumen_final, df_detalle_final, df_consolidado):
     buffer = io.BytesIO()
@@ -413,6 +371,73 @@ def generar_excel(resumen_final, df_detalle_final, df_consolidado):
         df_consolidado.to_excel(writer,      sheet_name='Archivo_crudo_limpio', index=False)
     buffer.seek(0)
     return buffer
+
+
+# ── UI principal ───────────────────────────────────────────────────────────────
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("📄 Archivo de Horarios")
+    archivo_horarios = st.file_uploader(
+        "Sube el archivo de horarios docentes (.xlsx)",
+        type=["xlsx"],
+        key="horarios"
+    )
+    if archivo_horarios:
+        st.success(f"✅ Cargado: {archivo_horarios.name}")
+
+with col2:
+    st.subheader("🖐 Archivo Biométrico")
+    archivo_biometrico = st.file_uploader(
+        "Sube el archivo biométrico (.xlsx)",
+        type=["xlsx"],
+        key="biometrico"
+    )
+    if archivo_biometrico:
+        st.success(f"✅ Cargado: {archivo_biometrico.name}")
+
+st.divider()
+
+if archivo_horarios and archivo_biometrico:
+    if st.button("🚀 Procesar archivos", type="primary", use_container_width=True):
+        try:
+            with st.spinner("Procesando..."):
+                resumen_final, df_detalle_final, df_consolidado = procesar(
+                    archivo_horarios, archivo_biometrico
+                )
+
+            st.session_state["resumen_final"]    = resumen_final
+            st.session_state["df_detalle_final"] = df_detalle_final
+            st.session_state["df_consolidado"]   = df_consolidado
+            st.success("✅ Procesamiento exitoso. Revisa las pestañas y descarga el reporte.")
+
+        except Exception as e:
+            st.error(f"❌ Error durante el procesamiento: {e}")
+            st.exception(e)
+else:
+    st.info("⬆️ Sube ambos archivos para habilitar el procesamiento.")
+
+# ── Resultados ─────────────────────────────────────────────────────────────────
+if "resumen_final" in st.session_state:
+    resumen_final    = st.session_state["resumen_final"]
+    df_detalle_final = st.session_state["df_detalle_final"]
+    df_consolidado   = st.session_state["df_consolidado"]
+
+    tab1, tab2, tab3 = st.tabs(["📊 Resumen Semanal", "📋 Detalle Cruce Diario", "🗂 Archivo Crudo"])
+
+    with tab1:
+        st.markdown(f"**{len(resumen_final)} filas** · {resumen_final['DOCUMENTO'].nunique()} docentes")
+        st.dataframe(resumen_final, use_container_width=True, height=400)
+
+    with tab2:
+        st.markdown(f"**{len(df_detalle_final)} filas**")
+        st.dataframe(df_detalle_final, use_container_width=True, height=400)
+
+    with tab3:
+        st.markdown(f"**{len(df_consolidado)} filas**")
+        st.dataframe(df_consolidado, use_container_width=True, height=400)
+
+    st.divider()
 
     excel_buffer = generar_excel(resumen_final, df_detalle_final, df_consolidado)
     st.download_button(
