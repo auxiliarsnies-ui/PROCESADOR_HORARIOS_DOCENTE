@@ -14,21 +14,15 @@ st.set_page_config(
 )
 
 st.title("🏫 Procesador de Horarios Docentes")
-st.markdown("Sube los dos archivos Excel, configura el año y descarga el reporte consolidado.")
+st.markdown("Sube los dos archivos Excel para procesar y descargar el reporte consolidado.")
 
-# ── Sidebar: Configuración ─────────────────────────────────────────────────────
-with st.sidebar:
-    st.header("⚙️ Configuración")
-    YEAR = st.number_input("Año de procesamiento", min_value=2020, max_value=2035, value=2026, step=1)
-    BASE_FECHA = f"{YEAR}-01-01 "
-
-    st.subheader("📅 Semana Santa")
-    ss_ini = st.text_input("Inicio Semana Santa (YYYY-MM-DD)", value=f"{YEAR}-03-29")
-    ss_fin = st.text_input("Fin Semana Santa (YYYY-MM-DD)",   value=f"{YEAR}-04-05")
-
-    st.subheader("🌙 Recargo nocturno")
-    recargo_ini = st.text_input("Inicio recargo", value="19:00")
-    recargo_fin = st.text_input("Fin recargo",    value="22:00")
+# ── Configuración Fija (Anteriormente en la barra lateral) ─────────────────────
+YEAR = 2026
+BASE_FECHA = f"{YEAR}-01-01 "
+ss_ini = f"{YEAR}-03-29"
+ss_fin = f"{YEAR}-04-05"
+recargo_ini = "19:00"
+recargo_fin = "22:00"
 
 # ── Constantes derivadas ───────────────────────────────────────────────────────
 MESES_ES = {
@@ -97,8 +91,8 @@ def calcular_recargos_reales(row):
     try:
         real_in  = pd.to_datetime(BASE_FECHA + str(row['ENTRADA_BIO']), errors='coerce')
         real_out = pd.to_datetime(BASE_FECHA + str(row['SALIDA_BIO']),  errors='coerce')
-        proj_in  = pd.to_datetime(BASE_FECHA + str(row['INI_CLASE']),   errors='coerce')
-        proj_out = pd.to_datetime(BASE_FECHA + str(row['FIN_CLASE']),   errors='coerce')
+        proj_in  = pd.to_datetime(BASE_FECHA + str(row['INI_CLASE']),  errors='coerce')
+        proj_out = pd.to_datetime(BASE_FECHA + str(row['FIN_CLASE']),  errors='coerce')
         if pd.isna(real_in) or pd.isna(real_out) or pd.isna(proj_out):
             return 0.0
         if proj_out <= inicio_recargo:
