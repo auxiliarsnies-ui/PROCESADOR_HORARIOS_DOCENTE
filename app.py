@@ -232,54 +232,24 @@ def procesar(archivo_horarios, archivo_biometrico, archivo_ausentismos=None):
         try:
             ausentismos = pd.read_excel(
                 archivo_ausentismos,
-                usecols=["fecha_ina", "cod_emp", "horas_dias"],
+                usecols=["fecha_ina", "cod_emp"],
                 skiprows=1
             )
             ausentismos.columns = ausentismos.columns.str.upper().str.strip()
             ausentismos['FECHA_INA'] = pd.to_datetime(ausentismos['FECHA_INA'], dayfirst=True, errors='coerce')
             llave_aus = ausentismos['FECHA_INA'].dt.strftime('%d/%m/%Y') + '-' + ausentismos['COD_EMP'].astype(str)
             ausentismos.insert(0, 'llave', llave_aus)
- 
-            # Ordenar el detalle para que la propagación de días sea correcta
-            df_detalle_final = df_detalle_final.sort_values(by=['DOCUMENTO', 'fecha']).reset_index(drop=True)
- 
-            # Cruce para traer duración del ausentismo
-            df_detalle_final = df_detalle_final.merge(
-                ausentismos[['llave', 'HORAS_DIAS']],
-                on='llave',
-                how='left'
-            )
- 
-            # Máscara para marcar las filas a modificar
-            df_detalle_final['aplicar_cambio'] = False
- 
-            # Índices donde inicia un ausentismo
-            indices_ausentismos = df_detalle_final[df_detalle_final['HORAS_DIAS'].notna()].index
- 
-            # Propagar el ausentismo N días hacia adelante
-            for idx in indices_ausentismos:
-                dias_ausencia = int(df_detalle_final.loc[idx, 'HORAS_DIAS'])
-                documento_actual = df_detalle_final.loc[idx, 'DOCUMENTO']
- 
-                for i in range(dias_ausencia):
-                    indice_objetivo = idx + i
-                    if (indice_objetivo < len(df_detalle_final) and
-                            df_detalle_final.loc[indice_objetivo, 'DOCUMENTO'] == documento_actual):
-                        df_detalle_final.loc[indice_objetivo, 'aplicar_cambio'] = True
- 
-            # Reemplazar TOTAL_BIO_DIA por HORAS_CLASE en los días con ausentismo
-            df_detalle_final.loc[df_detalle_final['aplicar_cambio'], 'TOTAL_BIO_DIA'] = \
-                df_detalle_final.loc[df_detalle_final['aplicar_cambio'], 'HORAS_CLASE']
- 
-            # Limpiar columnas auxiliares
-            df_detalle_final = df_detalle_final.drop(columns=['HORAS_DIAS', 'aplicar_cambio'])
- 
-            n_aus = len(indices_ausentismos)
-            st.info(f"ℹ️ Ausentismos aplicados: {n_aus} registro(s) encontrado(s) y propagados.")
- 
+
+            mascara_ausencia = df_detalle_final['llave'].isin(ausentismos['llave'])
+            df_detalle_final.loc[mascara_ausencia, 'TOTAL_BIO_DIA'] = \
+                df_detalle_final.loc[mascara_ausencia, 'HORAS_CLASE']
+
+            n_aus = mascara_ausencia.sum()
+            st.info(f"ℹ️ Ausentismos aplicados: {n_aus} día(s) ajustado(s).")
+
         except Exception as e:
             st.warning(f"⚠️ No se pudo procesar el archivo de ausentismos: {e}")
- 
+
     progress.progress(80, text="Calculando recargos reales...")
     # ── Recargos nocturnos reales ────────────────────────────────────────────
     df_detalle_final['TOTAL_HORAS_RECARGO'] = 0.0
