@@ -376,7 +376,7 @@ if "resumen_final" in st.session_state:
     resumen_final    = st.session_state["resumen_final"]
     df_detalle_final = st.session_state["df_detalle_final"]
     df_consolidado   = st.session_state["df_consolidado"]
-    st.success(f"¡Reporte generado con éxito! Se procesaron {len(resumen_final)} filas correspondientes a {resumen_final['DOCUMENTO'].nunique()} docentes.")
+    st.success(f"Se procesaron {len(resumen_final)} filas correspondientes a {resumen_final['DOCUMENTO'].nunique()} docentes. En un momento podrá descargar el Excel")
     st.divider()
     excel_buffer = generar_excel(resumen_final, df_detalle_final, df_consolidado)
     st.download_button(
