@@ -276,7 +276,8 @@ def procesar(archivo_horarios, archivo_biometrico, archivo_ausentismos=None):
             llave_aus = ausentismos['FECHA_INA'].dt.strftime('%d/%m/%Y') + '-' + ausentismos['COD_EMP'].astype(str)
             ausentismos.insert(0, 'llave', llave_aus)
 
-            mascara_ausencia   = df_detalle_final['llave'].isin(ausentismos['llave'])
+            llave_valida = df_detalle_final['llave'].notna() & (df_detalle_final['llave'].astype(str).str.strip() != '')
+            mascara_ausencia = df_detalle_final['llave'].isin(ausentismos['llave']) & llave_valida
             mascara_sin_marcacion = (
                 (df_detalle_final['TOTAL_BIO_DIA'] == 0) |
                 (df_detalle_final['TOTAL_BIO_DIA'].isna())
