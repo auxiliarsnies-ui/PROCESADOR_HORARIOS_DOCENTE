@@ -143,7 +143,7 @@ def procesar(file_carga, file_bio, file_aus, progress):
         (df_calendario["fecha"] > SEMANA_SANTA[1]) |
         (df_calendario["dia"] == "COMPL")
     ]
-    df_calendario = df_calendario[~df_calendario["fecha"].isin(FESTIVOS_CO.keys())]
+    df_calendario = df_calendario[~df_calendario["fecha"].dt.date.isin(FESTIVOS_CO.keys())
 
     # ── 5.1. Duración y recargo proyectado
     df_calendario['duracion_clase'] = (
