@@ -320,14 +320,6 @@ def procesar(file_carga, file_bio, file_aus, progress):
                       'RECARGOS QUE DEBIA HACER','HORAS HECHAS (BIOMÉTRICO)','RECARGOS HECHOS (BIOMÉTRICO)']
     resumen_final = resumen_final[columnas_ordenadas]
 
-
-    # ── Alivio de 15 minutos
-    progress.progress(96, "Aplicando alivio de 15 minutos...")
-    hora_completa   = np.ceil(df_detalle_final['TOTAL_HORAS_RECARGO'])
-    tiempo_faltante = hora_completa - df_detalle_final['TOTAL_HORAS_RECARGO']
-    condicion_alivio = (tiempo_faltante > 0) & (tiempo_faltante <= 0.25)
-    df_detalle_final.loc[condicion_alivio, 'TOTAL_HORAS_RECARGO'] = hora_completa[condicion_alivio]
-
     # ── Exportar a buffer
     progress.progress(98, "Generando archivo Excel...")
     buffer = io.BytesIO()
